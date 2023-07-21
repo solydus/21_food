@@ -8,8 +8,7 @@
 
 ## Доступ
 
-Проект НЕ запущен на сервере и НЕ доступен по адресу:
-- http://45.12.238.51/recipes
+Проект НЕ запущен на сервере и НЕ доступен
 
 ## Стек технологий
 - Python
@@ -23,7 +22,8 @@
 
 * Склонировать репозиторий на локальную машину:
 ```bash
-git clone git@github.com:Kaydalova/foodgram-project-react.git
+
+git clone git@github.com:solydus/foodgram-project-react.git
 cd foodgram-project-react
 ```
 
