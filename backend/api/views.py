@@ -27,19 +27,19 @@ from .serializers import (FavoriteRecipeSerializer,
 
 
 class RecipeViewSet(
-    mixins.ListModelMixin,  # Миксин для получения списка объектов
-    mixins.CreateModelMixin,  # Миксин для создания нового объекта
-    mixins.RetrieveModelMixin,  # Миксин для получения конкретного объекта
-    mixins.UpdateModelMixin,  # Миксин для обновления объекта
-    mixins.DestroyModelMixin,  # Миксин для удаления объекта
-    viewsets.GenericViewSet  # Базовый класс для вьюсета
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
 ):
-    queryset = Recipe.objects.all()  # Запрос для получения  объектов Recipe
-    pagination_class = PageNumPagination  # Класс пагинации для списка объектов
-    filter_backends = (DjangoFilterBackend,)  # Фильтр для применения фильтра
-    filterset_class = RecipesFilter  # Класс фильтра для модели Recipe
-    serializer_class = RecipeSerializer  # Сериализатор для модели Recipe
-    permission_classes = [IsAuthorOrReadOnly]  # Классы разрешений к объектам
+    queryset = Recipe.objects.all()
+    pagination_class = PageNumPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipesFilter
+    serializer_class = RecipeSerializer
+    permission_classes = [IsAuthorOrReadOnly]
 
 
 class TagViewSet(mixins.ListModelMixin,
