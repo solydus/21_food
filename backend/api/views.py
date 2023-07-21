@@ -222,7 +222,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         if not ShoppingCart.objects.filter(
             recipe=recipe,
             cart_owner=self.request.user).exists():
-           return Response({"errors"...})
+            return Response({'errors': 'Рецепта нет'},
         ShoppingCart.objects.filter(
             recipe=recipe,
             cart_owner=self.request.user
