@@ -217,16 +217,10 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 
     @action(methods=['delete'], detail=True)
     def delete(self, request, recipe_id):
-        recipe = get_object_or_404(Recipe,
-                                   pk=recipe_id)
-        if not ShoppingCart.objects.filter(
-            recipe=recipe,
-            cart_owner=self.request.user).exists():
-            return Response({'errors': 'Рецепта нет'},
-        ShoppingCart.objects.filter(
-            recipe=recipe,
-            cart_owner=self.request.user
-        ).delete()
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
+        if not ShoppingCart.objects.filter(recipe=recipe, cart_owner=self.request.user).exists():
+            return Response({'errors': 'Рецепта нет'})
+        ShoppingCart.objects.filter(recipe=recipe, cart_owner=self.request.user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
