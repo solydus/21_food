@@ -60,6 +60,35 @@ class IngredientViewSet(mixins.ListModelMixin,
     filter_backends = (SearchFilterIngr,)
     search_fields = ('^name',)
 
+class IngredientViewSet(mixins.ListModelMixin,
+                        mixins.RetrieveModelMixin,
+                        mixins.CreateModelMixin,
+                        mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin,
+                        viewsets.GenericViewSet):
+    """ Добавление в список ингридиентов доступно только через админку """
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    filter_backends = (SearchFilterIngr,)
+    search_fields = ('^name',)
+
+    @action(detail=False, methods=['post'])
+    def upload(self, request):
+uploaded_file = request.FILES['ingredient_file']
+    if uploaded_file.name.endswith('.csv'):
+        reader = csv.reader(uploaded_file)
+        for row in reader:
+            name, measure = row
+            Ingredient.objects.create(
+                name=name,
+                measure=measure
+            )
+        return Response(status=status.HTTP_200_OK)
+    else:
+        return Response({
+            'error': 'Uploaded file must be a CSV file.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SubscriptionsViewSet(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
