@@ -74,20 +74,20 @@ class IngredientViewSet(mixins.ListModelMixin,
 
     @action(detail=False, methods=['post'])
     def upload(self, request):
-uploaded_file = request.FILES['ingredient_file']
-    if uploaded_file.name.endswith('.csv'):
-        reader = csv.reader(uploaded_file)
-        for row in reader:
-            name, measure = row
-            Ingredient.objects.create(
-                name=name,
-                measure=measure
-            )
-        return Response(status=status.HTTP_200_OK)
-    else:
-        return Response({
-            'error': 'Uploaded file must be a CSV file.'
-        }, status=status.HTTP_400_BAD_REQUEST)
+      uploaded_file = request.FILES['ingredient_file']
+      if uploaded_file.name.endswith('.csv'):
+          reader = csv.reader(uploaded_file)
+          for row in reader:
+              name, measure = row
+              Ingredient.objects.create(
+                  name=name,
+                  measure=measure
+              )
+          return Response(status=status.HTTP_200_OK)
+      else:
+          return Response({
+              'error': 'Uploaded file must be a CSV file.'
+          }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SubscriptionsViewSet(mixins.ListModelMixin,
