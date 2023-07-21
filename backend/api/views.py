@@ -77,6 +77,37 @@ class SubscriptionsViewSet(mixins.ListModelMixin,
         return Subscribe.objects.filter(
             user=self.request.user).prefetch_related('author')
 
+class SubscribeCreateView(viewsets.GenericViewSet):
+    permission_classes = [IsAuthenticated] 
+    serializer_class = SubscribeSerializer
+
+    def create(self, request, author_id):
+        author = get_object_or_404(User, id=author_id)
+        if request.user == author:
+            return Response(
+                {'errors': 'Вы не можете подписаться на самого себя'},
+                status=status.HTTP_400_BAD_REQUEST)
+        subscription = Subscribe.objects.filter(
+            author=author, user=request.user)
+        if subscription.exists():
+            return Response(
+                {'errors': 'Вы уже подписаны на этого автора'},
+                status=status.HTTP_400_BAD_REQUEST)
+        queryset = Subscribe.objects.create(author=author, user=request.user)
+        serializer = self.get_serializer(queryset)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, author_id):
+        author = get_object_or_404(User, id=author_id)
+        subscription = Subscribe.objects.filter(author=author,
+                                                user=request.user)
+        if not subscription.exists():
+            return Response(
+                {'errors': 'Вы еще не подписаны на этого автора'},
+                status=status.HTTP_400_BAD_REQUEST)
+        subscription.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class SubscribeCreateView(APIView):
     """ сделать/удалить подписку """
@@ -142,44 +173,44 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ShoppingCartViewSet(CreateDestroyAll):
-    """ Добавлять и удалять рецепты из корзины покупок """
-    queryset = ShoppingCart.objects.all()
+class ShoppingCartViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     serializer_class = ShoppingCartSerializer
-    permission_classes = [IsAuthenticated, ]
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        recipe = get_object_or_404(Recipe, pk=self.kwargs.get('recipe_id'))
-        context.update({'recipe': recipe})
-        context.update({'cart_owner': self.request.user})
-        return context
+    def get_queryset(self):
+        return ShoppingCart.objects.filter(cart_owner=self.request.user)
 
-    @action(methods=('delete',), detail=True)
+    def perform_create(self, serializer):
+        recipe = get_object_or_404(Recipe,
+                                   pk=self.kwargs.get('recipe_id'))
+        serializer.save(recipe=recipe,
+                        cart_owner=self.request.user)
+
+    @action(methods=['delete'], detail=True)
     def delete(self, request, recipe_id):
-        recipe = self.kwargs.get('recipe_id')
-        cart_owner = self.request.user
-        if not ShoppingCart.objects.filter(recipe=recipe,
-                                           cart_owner=cart_owner).exists():
-            return Response({'errors': 'Рецепт не добавлен в список покупок'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        get_object_or_404(
-            ShoppingCart,
-            cart_owner=cart_owner,
-            recipe=recipe).delete()
+        recipe = get_object_or_404(Recipe,
+                                   pk=recipe_id)
+        if not ShoppingCart.objects.filter(
+            recipe=recipe,
+            cart_owner=self.request.user).exists():
+           return Response({"errors"...})
+        ShoppingCart.objects.filter(
+            recipe=recipe,
+            cart_owner=self.request.user
+        ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class DownloadShoppingCart(APIView):
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         shopping_list = generate_shopping_list(request.user)
-        if shopping_list is None:
-            return Response({'errors': 'В вашем списке покупок ничего нет'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        response = HttpResponse(shopping_list, content_type='text/plain')
-        filename = 'shopping_list.txt'
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        if not shopping_list:
+            return Response({"errors": ...})
+        response = HttpResponse(
+                  shopping_list,
+                  content_type='text/plain')
+        response['Content-Disposition'] = \
+            'attachment; filename="shopping_list.txt"'
         return response
