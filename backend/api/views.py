@@ -1,3 +1,4 @@
+import csv
 from django.shortcuts import HttpResponse, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, mixins
@@ -15,7 +16,6 @@ from users.models import Subscribe, User
 
 from .shopping_utils import generate_shopping_list
 from .filters import SearchFilterIngr, RecipesFilter
-from .mixins import CreateDestroyAll
 from .paginators import PageNumPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteRecipeSerializer,
@@ -60,6 +60,7 @@ class IngredientViewSet(mixins.ListModelMixin,
     filter_backends = (SearchFilterIngr,)
     search_fields = ('^name',)
 
+
 class IngredientViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
                         mixins.CreateModelMixin,
@@ -74,20 +75,18 @@ class IngredientViewSet(mixins.ListModelMixin,
 
     @action(detail=False, methods=['post'])
     def upload(self, request):
-      uploaded_file = request.FILES['ingredient_file']
-      if uploaded_file.name.endswith('.csv'):
-          reader = csv.reader(uploaded_file)
-          for row in reader:
-              name, measure = row
-              Ingredient.objects.create(
-                  name=name,
-                  measure=measure
-              )
-          return Response(status=status.HTTP_200_OK)
-      else:
-          return Response({
-              'error': 'Uploaded file must be a CSV file.'
-          }, status=status.HTTP_400_BAD_REQUEST)
+        uploaded_file = request.FILES['ingredient_file']
+        if uploaded_file.name.endswith('.csv'):
+            reader = csv.reader(uploaded_file)
+            for row in reader:
+                name, measure = row
+                Ingredient.objects.create(name=name,
+                                          measure=measure)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response({
+              'error': 'Uploaded file must be a CSV file.'},
+              status=status.HTTP_400_BAD_REQUEST)
 
 
 class SubscriptionsViewSet(mixins.ListModelMixin,
@@ -106,8 +105,9 @@ class SubscriptionsViewSet(mixins.ListModelMixin,
         return Subscribe.objects.filter(
             user=self.request.user).prefetch_related('author')
 
+
 class SubscribeCreateView(viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated]
     serializer_class = SubscribeSerializer
 
     def create(self, request, author_id):
@@ -218,9 +218,12 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     @action(methods=['delete'], detail=True)
     def delete(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, pk=recipe_id)
-        if not ShoppingCart.objects.filter(recipe=recipe, cart_owner=self.request.user).exists():
+        if not ShoppingCart.objects.filter(recipe=recipe,
+                                           cart_owner=self.request.user
+                                           ).exists():
             return Response({'errors': 'Рецепта нет'})
-        ShoppingCart.objects.filter(recipe=recipe, cart_owner=self.request.user).delete()
+        ShoppingCart.objects.filter(recipe=recipe,
+                                    cart_owner=self.request.user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
