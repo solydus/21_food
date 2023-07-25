@@ -33,13 +33,13 @@ class RecipeViewSet(
     mixins.DestroyModelMixin,  # Миксин для удаления объекта
     viewsets.GenericViewSet  # Базовый класс для вьюсета
 ):
-    queryset = Recipe.objects.all()  # Запрос для получения  объектов Recipe
+    def get_queryset(self):
+        return Recipe.objects.all()
     pagination_class = PageNumPagination  # Класс пагинации для списка объектов
     filter_backends = (DjangoFilterBackend,)  # Фильтр для применения фильтра
     filterset_class = RecipesFilter  # Класс фильтра для модели Recipe
     serializer_class = RecipeSerializer  # Сериализатор для модели Recipe
     permission_classes = [IsAuthorOrReadOnly]  # Классы разрешений к объектам
-
 
 class TagViewSet(mixins.ListModelMixin,
                  mixins.RetrieveModelMixin,
